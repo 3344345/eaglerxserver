@@ -1,3 +1,24 @@
+# EaglerXServer (Modern Paper Fix)
+
+> **⚠️ Notice / 注意**
+> This is a community-maintained fork. The original Bukkit/Spigot implementation only supported up to Minecraft 1.12.2. 
+> **This fork adds native compatibility for modern PaperMC servers (1.19, 1.20, and up to 26.3).**
+> 
+> 这是一个社区维护的分支。原版 Bukkit/Spigot 实现仅支持到 1.12.2。**本分支通过重构底层反射逻辑，原生支持了现代 PaperMC 服务端（最高测试至 Paper 26.3）。**
+
+## 🛠️ What was fixed / 修复了什么
+
+To support modern Paper, we patched the following reflection failures caused by Mojang/Paper's internal changes:
+1. **`BukkitUnsafe.java`**: Bypassed `getDedicatedServerProperties` and `getServerConnection` reflection calls, directly returning a new `NioEventLoopGroup` and forcing `isEnableNativeTransport` to false.
+2. **`PlayerPostLoginInjector.java`**: Added compatibility for the new `PacketFlow` enum (previously `EnumProtocolDirection`) and relaxed the signature matching for the `send` method.
+
+## 📦 Pre-built JAR / 预编译包
+
+You can download the pre-built `EaglerXServer-Bukkit.jar` directly from the [Releases](https://github.com/3344345/eaglerxserver/releases) tab. 
+*(Download and put it in your Paper server's `plugins` folder, no need to compile).*
+
+---
+
 # EaglercraftXServer
 
 ### An industrial-grade Eaglercraft server
@@ -157,4 +178,4 @@ If you contribute to EaglercraftXServer, you must consent to your patches being 
 
 ## Forking EaglercraftXServer
 
-There are no limitations on what you are allowed to do with the source of EaglercraftXServer, although the creators will probably be less than thrilled if you try to take credit for portions of it without substantial modifications. There are some classes from open-source libraries like HPPC that have been copied into EaglercraftXServer which have additional restrictions on them, but there's nothing GPL in here that'll give you trouble if you don't make your patches to the code public. 
+There are no limitations on what you are allowed to do with the source of EaglercraftXServer, although the creators will probably be less than thrilled if you try to take credit for portions of it without substantial modifications. There are some classes from open-source libraries like HPPC that have been copied into EaglercraftXServer which have additional restrictions on them, but there's nothing GPL in here that'll give you trouble if you don't make your patches to the code public.
