@@ -43,6 +43,7 @@ import io.netty.util.concurrent.GenericFutureListener;
 import net.lax1dude.eaglercraft.backend.server.api.bukkit.event.PlayerLoginPostEvent;
 import net.lax1dude.eaglercraft.backend.server.bukkit.BukkitUnsafe;
 import net.lax1dude.eaglercraft.backend.server.bukkit.PlatformPluginBukkit;
+import net.lax1dude.eaglercraft.backend.server.bukkit.async.PlayerPostLoginInjector.EaglerError;
 import net.lax1dude.eaglercraft.backend.server.util.ClassProxy;
 import net.lax1dude.eaglercraft.backend.server.util.Util;
 import net.md_5.bungee.api.chat.BaseComponent;
@@ -122,7 +123,8 @@ public class PlayerPostLoginInjector {
 			Field channelField = null;
 			for (Field f : netManagerClass.getDeclaredFields()) {
 				Class<?> clz = f.getType();
-				if (clz.getSimpleName().equals("EnumProtocolDirection")) {
+				// 【源码修改】兼容新版 Paper 的 PacketFlow，同时兼容旧版的 EnumProtocolDirection
+				if (clz.getSimpleName().equals("EnumProtocolDirection") || clz.getSimpleName().equals("PacketFlow")) {
 					f.setAccessible(true);
 					protocolDirType = (Class<Object>) f.getType();
 					protocolDirField = f;
@@ -162,8 +164,10 @@ public class PlayerPostLoginInjector {
 					sendPacketMethod3 = m;
 					sendPacketMethod2 = null;
 				} else if (sendPacketMethod3 == null && sendPacketMethod2 == null && params.length == 2
-						&& params[0].getSimpleName().equals("Packet")
-						&& params[1].equals(GenericFutureListener.class)) {
+						&& params[0].getSimpleName().equals("Packet") 
+                        && m.getName().equals("send")) {
+                    // 【源码修改】现代 Paper 的 send 方法签名变了，第二个参数不再是 GenericFutureListener
+                    // 只要名字是 send 且第一个参数是 Packet 即可认作发包方法
 					sendPacketMethod2 = m;
 				} else if (getHandlerMethod == null && params.length == 0
 						&& m.getReturnType().getSimpleName().equals("PacketListener")) {
@@ -174,6 +178,7 @@ public class PlayerPostLoginInjector {
 					break;
 				}
 			}
+			
 			if (setHandlerMethod == null) {
 				throw new IllegalStateException(
 						"Could not locate set handler function of " + netManagerClass.getName());

@@ -542,37 +542,13 @@ public class BukkitUnsafe {
 	}
 
 	public static boolean isEnableNativeTransport(Server server) {
-		try {
-			Object dedicatedPlayerList = server.getClass().getMethod("getHandle").invoke(server);
-			Object dedicatedServer = dedicatedPlayerList.getClass().getMethod("getServer").invoke(dedicatedPlayerList);
-			Object propertyManager = dedicatedServer.getClass().getMethod("getPropertyManager").invoke(dedicatedServer);
-			Method getBoolean = Util.findDeclaredMethod(propertyManager.getClass(), "getBoolean", String.class, boolean.class);
-			getBoolean.setAccessible(true);
-			return (Boolean) getBoolean.invoke(propertyManager, "use-native-transport", true);
-		} catch (ReflectiveOperationException e) {
-			try {
-				Object dedicatedPlayerList = server.getClass().getMethod("getHandle").invoke(server);
-				Object dedicatedServer = dedicatedPlayerList.getClass().getMethod("getServer").invoke(dedicatedPlayerList);
-				Object propertyManager = dedicatedServer.getClass().getMethod("getDedicatedServerProperties").invoke(dedicatedServer);
-				Method getBoolean = Util.findDeclaredMethod(propertyManager.getClass(), "getBoolean", String.class, boolean.class);
-				getBoolean.setAccessible(true);
-				return (Boolean) getBoolean.invoke(propertyManager, "use-native-transport", true);
-			} catch (Exception e1) {
-				throw Util.propagateReflectThrowable(e1);
-			}
-		}
+		// 【源码修改】高版本 Paper 已移除相关反射方法，强制返回 false 使用 NIO 模式
+		return false;
 	}
 
 	public static EventLoopGroup getEventLoopGroup(Server server, boolean enableNativeTransport) {
-		Class<?> serverConnection;
-		try {
-			Object dedicatedPlayerList = server.getClass().getMethod("getHandle").invoke(server);
-			Object minecraftServer = dedicatedPlayerList.getClass().getMethod("getServer").invoke(dedicatedPlayerList);
-			serverConnection = minecraftServer.getClass().getMethod("getServerConnection").getReturnType();
-		} catch (ReflectiveOperationException e) {
-			throw Util.propagateReflectThrowable(e);
-		}
-		return getEventLoopGroup(serverConnection, enableNativeTransport);
+		// 【源码修改】高版本 Paper 移除了 getServerConnection 反射，直接返回新的 NIO 线程组
+		return new io.netty.channel.nio.NioEventLoopGroup();
 	}
 
 	public static EventLoopGroup getEventLoopGroup(Class<?> serverConnection, boolean enableNativeTransport) {
